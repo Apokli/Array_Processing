@@ -1,12 +1,14 @@
-function theta = esprit(X, d)
-% esprit - estimates the angle using esprit algorithm
+function f = espritfreq(X, d)
+% espritfreq - estimates the frequency using esprit algorithm
 %                   
 % Inputs:
 %   X - the signals received at antennas
 %   d - the number of sources
-    m = size(X, 1) - 1; % number of antennas - 1
-    x1 = X(1:m, :);
-    x2 = X(2:m+1, :);
+    m = size(X, 1);   % number of antennas
+    k = size(X, 2);  % data sample length
+   
+    x1 = X(:, 1:k-1);
+    x2 = X(:, 2:k);
     Xt = [x1;x2];
     
     [U, S, V]=svd(Xt);
@@ -17,6 +19,6 @@ function theta = esprit(X, d)
     
     [evc, eva]=eig(M);
     eva = (diag(eva)).';
-    theta = asin(angle(eva)/pi)*180/pi;
+    f = angle(eva)/(2*pi);
 end
 
