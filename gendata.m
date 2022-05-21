@@ -10,7 +10,7 @@ function [X, A, S] = gendata(M, N, Delta, theta, f, SNR)
 %   SNR - signal to noise ratio per source
 
     degree2rad = pi/180;
-    K = 0: 511; % signal samples
+    K = 0: N - 1; % signal samples
     d = 0: Delta: (M-1) * Delta; 
     A = exp(1i * 2 * pi * d.' * sin(theta * degree2rad).');  % Array Response Vector
     

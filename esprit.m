@@ -17,6 +17,6 @@ function theta = esprit(X, d)
     
     [evc, eva]=eig(M);
     eva = (diag(eva)).';
-    theta = asin(angle(eva)/pi)*180/pi;
+    theta = sort(asin(angle(eva)/pi)*180/pi);
 end
 

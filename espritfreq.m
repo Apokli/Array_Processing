@@ -19,6 +19,6 @@ function f = espritfreq(X, d)
     
     [evc, eva]=eig(M);
     eva = (diag(eva)).';
-    f = angle(eva)/(2*pi);
+    f = sort(angle(eva)/(2*pi));
 end
 
