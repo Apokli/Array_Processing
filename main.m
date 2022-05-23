@@ -26,6 +26,7 @@
 %     j_theta, j_freq = joint(X, d, m);
 
 %% Comparison
+    % angle estimation using ESPRIT
     M = 3;               % the number of antennas
     N = 20;              % the number of sources
     Delta = 0.5;         % antenna spacing per wavelength, commonly 0.5
@@ -42,10 +43,38 @@
         end
     end
     angle_params = [mean(angles(:, :, 1), 2), std(angles(:, :, 1), 0, 2), mean(angles(:, :, 2), 2), std(angles(:, :, 2), 0, 2)];
+    figure(1);
     plt = plot(SNR, angle_params, '-*', 'Linewidth', 2);
     hold on
     plot([0, 20], [0, 0; theta(1), theta(1); theta(2), theta(2)], '--m');
     legend(plt, ["angle1 mean", "angle 1 standard deviation", "angle2 mean", "angle 2 standard deviation"])
+    ylabel("angles")
+    xlabel("SNR")
     title("angle estimation accuracy at different SNRs")
+    
+    % frequency estimation using ESPRIT
+    M = 3;               % the number of antennas
+    N = 20;              % the number of sources
+    Delta = 0.5;         % antenna spacing per wavelength, commonly 0.5
+    theta = [-20, 30].'; % directions of sources in degrees (-90, 90)
+    f = [0.1, 0.12].';    % normalized frequency of sources [0, 1)
+    SNR = [0, 4, 8, 12, 16, 20];            % signal to noise ratio per source
+    
+    freqs = zeros(6, 1000, 2);
+    for i = 1:length(SNR)
+        for j = 1:1000
+            [X, A, S] = gendata(M, N, Delta, theta, f, SNR(i));
+            freqs(i, j, :) = espritfreq(X, size(theta, 1));
+        end
+    end
+    freq_params = [mean(freqs(:, :, 1), 2), std(freqs(:, :, 1), 0, 2), mean(freqs(:, :, 2), 2), std(freqs(:, :, 2), 0, 2)];
+    figure(2);
+    plt = plot(SNR, freq_params, '-*', 'Linewidth', 2);
+    hold on
+    plot([0, 20], [0, 0; f(1), f(1); f(2), f(2)], '--m');
+    legend(plt, ["freq1 mean", "freq 1 standard deviation", "freq2 mean", "freq 2 standard deviation"])
+    ylabel("frequency")
+    xlabel("SNR")
+    title("freq estimation accuracy at different SNRs")
 
     
