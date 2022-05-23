@@ -9,12 +9,14 @@ function [X, A, S] = gendata(M, N, Delta, theta, f, SNR)
 %   f - normalized frequency of sources [0, 1)
 %   SNR - signal to noise ratio per source
 
-    degree2rad = pi/180;
     K = 0: N - 1; % signal samples
     d = 0: Delta: (M-1) * Delta; 
-    A = exp(1i * 2 * pi * d.' * sin(theta * degree2rad).');  % Array Response Vector
-    
+    A = exp(1i * 2 * pi * d.' * sin(theta * pi / 180).');  % Array Response Vector
+
     S = exp(1i * 2 * pi * f * K);      % Source Signal
     X = A * S;                    % Received Signal
-    X = awgn(X, SNR, 'measured'); % Add Noise
+    
+    if nargin == 6
+        X = awgn(X, SNR, 'measured'); % Add Noise
+    end        
 end

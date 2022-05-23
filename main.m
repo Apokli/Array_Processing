@@ -21,60 +21,86 @@
 %% Estimation of Directions
     esprit_angle = esprit(X, size(theta, 1));  % esprit estimating angles
 %% Estimation of Frequencies
-    esprit_freq = espritfreq(X, size(theta, 1));  % esprit estimating angles
+    esprit_freq = espritfreq(X, size(f, 1));  % esprit estimating angles
 %% Joint estimation of directions and frequencies
 %     j_theta, j_freq = joint(X, d, m);
 
 %% Comparison
-    % angle estimation using ESPRIT
     M = 3;               % the number of antennas
     N = 20;              % the number of sources
     Delta = 0.5;         % antenna spacing per wavelength, commonly 0.5
     theta = [-20, 30].'; % directions of sources in degrees (-90, 90)
     f = [0.1, 0.12].';    % normalized frequency of sources [0, 1)
     SNR = [0, 4, 8, 12, 16, 20];            % signal to noise ratio per source
+    X = zeros(M, N, length(SNR));
     
-    % angle estimation
+%% ---- angle estimation
     angles = zeros(6, 1000, 2);
     for i = 1:length(SNR)
         for j = 1:1000
-            [X, A, S] = gendata(M, N, Delta, theta, f, SNR(i));
-            angles(i, j, :) = esprit(X, size(theta, 1));
+            [X(:, :, i), A, S] = gendata(M, N, Delta, theta, f, SNR(i));
+            angles(i, j, :) = esprit(X(:, :, i), size(theta, 1));
         end
     end
-    angle_params = [mean(angles(:, :, 1), 2), std(angles(:, :, 1), 0, 2), mean(angles(:, :, 2), 2), std(angles(:, :, 2), 0, 2)];
+    angle_means = [mean(angles(:, :, 1), 2), mean(angles(:, :, 2), 2)];
+    angle_stds = [std(angles(:, :, 1), 0, 2), std(angles(:, :, 2), 0, 2)];
     figure(1);
-    plt = plot(SNR, angle_params, '-*', 'Linewidth', 2);
+    subplot(1,2,1)
+    plt = plot(SNR, angle_means, '-*', 'Linewidth', 2);
     hold on
-    plot([0, 20], [0, 0; theta(1), theta(1); theta(2), theta(2)], '--m');
-    legend(plt, ["angle1 mean", "angle 1 standard deviation", "angle2 mean", "angle 2 standard deviation"])
+    plot([0, 20], [theta(1), theta(2); theta(1), theta(2)], '--m');
     ylabel("angles")
     xlabel("SNR")
-    title("angle estimation accuracy at different SNRs")
+    title("angle estimation at different SNRs")
+    legend(plt, ["angle1 mean", "angle2 mean"]);
+    subplot(1,2,2);
+    plot(SNR, angle_stds, '-*', 'Linewidth', 2);
+    ylabel("standard deviations")
+    xlabel("SNR")
+    title("standard deviations at different SNRs")
     
-    % frequency estimation using ESPRIT
-    M = 3;               % the number of antennas
-    N = 20;              % the number of sources
-    Delta = 0.5;         % antenna spacing per wavelength, commonly 0.5
-    theta = [-20, 30].'; % directions of sources in degrees (-90, 90)
-    f = [0.1, 0.12].';    % normalized frequency of sources [0, 1)
-    SNR = [0, 4, 8, 12, 16, 20];            % signal to noise ratio per source
     
+%% ---- frequency estimation
     freqs = zeros(6, 1000, 2);
     for i = 1:length(SNR)
         for j = 1:1000
-            [X, A, S] = gendata(M, N, Delta, theta, f, SNR(i));
-            freqs(i, j, :) = espritfreq(X, size(theta, 1));
+            [X(:, :, i), A, S] = gendata(M, N, Delta, theta, f, SNR(i));
+            freqs(i, j, :) = espritfreq(X(:, :, i), size(f, 1));
         end
     end
-    freq_params = [mean(freqs(:, :, 1), 2), std(freqs(:, :, 1), 0, 2), mean(freqs(:, :, 2), 2), std(freqs(:, :, 2), 0, 2)];
+    freq_means = [mean(freqs(:, :, 1), 2), mean(freqs(:, :, 2), 2)];
+    freq_stds = [std(freqs(:, :, 1), 0, 2), std(freqs(:, :, 2), 0, 2)];
     figure(2);
-    plt = plot(SNR, freq_params, '-*', 'Linewidth', 2);
+    subplot(1,2,1)
+    plt = plot(SNR, freq_means, '-*', 'Linewidth', 2);
     hold on
-    plot([0, 20], [0, 0; f(1), f(1); f(2), f(2)], '--m');
-    legend(plt, ["freq1 mean", "freq 1 standard deviation", "freq2 mean", "freq 2 standard deviation"])
-    ylabel("frequency")
+    plot([0, 20], [f(1), f(2); f(1), f(2)], '--m');
+    ylabel("frequencies")
     xlabel("SNR")
-    title("freq estimation accuracy at different SNRs")
-
+    title("frequency estimation at different SNRs")
+    legend(plt, ["freq1 mean", "freq2 mean"]);
+    subplot(1,2,2);
+    plot(SNR, freq_stds, '-*', 'Linewidth', 2);
+    ylabel("standard deviations")
+    xlabel("SNR")
+    title("standard deviations at different SNRs")
     
+%% ---- TODO: Add joint
+    
+%% -- zero-forcing beamformer
+%% ---- angle
+    [X, A, S] = gendata(M, N, Delta, theta, f);
+    a = esprit(X, size(theta, 1));
+    d = 0: Delta: (M-1) * Delta; 
+    Ab = exp(1i * 2 * pi * d.' * sin(a.' * pi / 180).');
+    Wha = pinv(Ab);
+    angle_beamform_diff = S - Wha * X;
+    angle_beamform_diff(abs(angle_beamform_diff)<1e-10) = 0;
+    
+%% ---- frequency
+    f = espritfreq(X, size(f, 1));
+    K = 0: N - 1;
+    Sb = exp(1i * 2 * pi * f.' * K);
+    Whf = pinv(X * pinv(Sb));
+    freq_beamform_diff = S - Whf * X;
+    freq_beamform_diff(abs(angle_beamform_diff)<1e-10) = 0;
