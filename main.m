@@ -17,7 +17,7 @@
     
 %     singular value decompostion
     sv = svd(X);
-    figure;
+    figure(1);
     plot(1:length(sv), sv, '-*')
     title("Singular Values of X")
 %       
@@ -60,7 +60,7 @@
 %     title("Singular Values of X with small frequency")
 
 
-% %% Estimation of Directions
+%% Estimation of Directions
     esprit_angle = esprit(X, size(theta, 1));  % esprit estimating angles
 
 
@@ -94,7 +94,7 @@
     end
     angle_means = [mean(angles(:, :, 1), 2), mean(angles(:, :, 2), 2)];
     angle_stds = [std(angles(:, :, 1), 0, 2), std(angles(:, :, 2), 0, 2)];
-    figure(1);
+    figure(2);
     subplot(1,2,1)
     plt = plot(SNR, angle_means, '-*', 'Linewidth', 2);
     hold on
@@ -120,7 +120,7 @@
     end
     freq_means = [mean(freqs(:, :, 1), 2), mean(freqs(:, :, 2), 2)];
     freq_stds = [std(freqs(:, :, 1), 0, 2), std(freqs(:, :, 2), 0, 2)];
-    figure(2);
+    figure(3);
     subplot(1,2,1)
     plt = plot(SNR, freq_means, '-*', 'Linewidth', 2);
     hold on
@@ -150,7 +150,7 @@
 
     freq_means = [mean(freqs(:, :, 1), 2), mean(freqs(:, :, 2), 2)];
     freq_stds = [std(freqs(:, :, 1), 0, 2), std(freqs(:, :, 2), 0, 2)];
-    figure(3);
+    figure(4);
     subplot(1,2,1)
     plt = plot(SNR, freq_means, '-*', 'Linewidth', 2);
     hold on
@@ -167,7 +167,7 @@
 
     angle_means = [mean(angles(:, :, 1), 2), mean(angles(:, :, 2), 2)];
     angle_stds = [std(angles(:, :, 1), 0, 2), std(angles(:, :, 2), 0, 2)];
-    figure(4);
+    figure(5);
     subplot(1,2,1)
     plt = plot(SNR, angle_means, '-*', 'Linewidth', 2);
     hold on
@@ -203,50 +203,42 @@
 %% ---- beamfromer plot
     M = 5;               % the number of antennas
     N = 20;              % the number of sources
-    d=2;
+    d = 2;
     Delta = 0.5;         % antenna spacing per wavelength, commonly 0.5
     f = [0.1, 0.3].';    % normalized frequency of sources [0, 1)
     SNR = 10;           % signal to noise ratio per source
-    theta=zeros(180,1);
-    for j=-90:90
-        theta(j+91)=j;
-    end   
+    theta = linspace(-90, 90, 181);
 %     theta = [-90,-80,-70,-60,-50,-40, -30.-20,-10,0,10,20,30,40,50,60,70,80,90].'; % directions of sources in degrees (-90, 90)
     A = zeros(M, d, length(theta));
 
     y1=zeros(length(theta),1);
     y2=zeros(length(theta),1);
-   for i=1:size(theta)-1
+   for i=1:size(theta) - 1
     [X, A(:,:,i), S] = gendata(M, N, Delta, theta(i:i+1,:), f);
     y1(i)=abs(det(Wha*A(:,:,i)));
     y2(i)=abs(det(Whf*A(:,:,i)));
    end
-   figure;
+   figure(6);
    plot(theta,y1);
-   figure;
+   figure(7);
    plot(theta,y2);
-%% CHANNEL EQUALIZATION
-
-clear 
-N=20;
-P=16;
-sigma=0;
-sr = randi([0,3],N,1);
-s=exp(1i*(pi/4+pi*sr/2));
-x = gendata_conv(s,P,N,sigma);
-
-X_noise = zeros(2*P,N-1);
-
-
-for i=1:N-1
-
-    A=1+i*P-P;
-
-    B=i*P+P;
-    X_noise(:,i)=x(A:B,1);
-
-end
-rank=rank(X_noise);
+% %% CHANNEL EQUALIZATION
+% clear 
+% N = 500;
+% P = 4;
+% sigma = 0;
+% 
+% sr = randi([0,3], N, 1);
+% s = exp(1i*(pi/4 + pi*sr/2));
+% x = gendata_conv(s,P,N,sigma);
+% 
+% X_noise = zeros(2*P,N-1);
+% for i=1:N-1
+%     A = 1 + i * P - P;
+%     B = i * P + P;
+%     X_noise(:, i) = x(A: B, 1);
+% end
+% % rank=rank(X_noise);
 
 
 
