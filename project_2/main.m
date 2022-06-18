@@ -66,3 +66,30 @@ for k = 1:size(Xkl, 1)
         akl(:, k, l) = Rn_invsqrt(:, :, k, l) \ Rx2atf(Rx_wh(:, :, k, l));
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% beamfromer
+Bkl = zeros(4, size(Xkl, 1), size(Xkl, 2));
+for k = 1:size(Xkl, 1)
+    for l = 1:size(Xkl, 2)
+        Bkl(:,k,l)=akl(:,k,l)/(akl(:,k,l)'*akl(:,k,l));
+    end
+end
+SSkl = zeros(size(Xkl, 1), size(Xkl, 2));
+skl = zeros(1, 4);
+for k = 1:size(Xkl, 1)
+    for l = 1:size(Xkl, 2)
+        for o=1:4
+        skl(1,o)=Xkl(k,l,o);
+        end
+        SSkl(k,l)=skl*Bkl(:,k,l);
+    end
+end
+
+% estimated
+fs_signal=16000;
+x=SKl(:,:,1);
+
+y=SSkl;
+
+% x=x(1:DD);
+d = stoi(x, y, fs_signal);
