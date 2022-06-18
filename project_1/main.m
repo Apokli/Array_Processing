@@ -174,7 +174,7 @@
     plot([0, 20], [theta(1), theta(2); theta(1), theta(2)], '--m');
     ylabel("angles")
     xlabel("SNR")
-    title("angle estimation at different SNRs")
+    title("joint angle estimation at different SNRs")
     legend(plt, ["angle1 mean", "angle2 mean"]);
     subplot(1,2,2);
     plot(SNR, angle_stds, '-*', 'Linewidth', 2);
