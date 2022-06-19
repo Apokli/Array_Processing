@@ -1,4 +1,5 @@
 %% Read all data, create sound data matrix
+clear;
 load('impulse_responses.mat');
 [y1, Fs1] = audioread('clean_speech.wav');
 [y2, Fs2] = audioread('clean_speech_2.wav');
@@ -28,7 +29,7 @@ Nkl = STFT1(Nt, Fs1);
 Skl = STFT1(S, Fs1);
 fprintf("======Done STFTs======\n");
 
-%% get RN, Rn ^ (-1/2) and prewhitened Rx
+%% get Rn ^ (-1/2) and prewhitened Rx
 Rn_invsqrt = zeros(4, 4, size(Nkl, 1), size(Nkl, 2));
 Rnkl = zeros(4, 4);
 kernel_len = 8;
