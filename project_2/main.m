@@ -32,7 +32,7 @@ fprintf("======Done STFTs======\n");
 %% get Rn ^ (-1/2) and prewhitened Rx
 Rn_invsqrt = zeros(4, 4, size(Nkl, 1), size(Nkl, 2));
 Rnkl = zeros(4, 4);
-kernel_len = 8;
+kernel_len = 4;
 for k = 1:size(Nkl, 1)
     for l = 1:size(Nkl, 2)
         down = max(1, l - kernel_len / 2);
@@ -52,7 +52,7 @@ end
 
 Rx_wh = zeros(4, 4, size(Xkl, 1), size(Xkl, 2));
 Rxkl = zeros(4, 4);
-kernel_len = 8;
+kernel_len = 4;
 for k = 1:size(Xkl, 1)
     for l = 1:size(Xkl, 2)
         down = max(1, l - kernel_len / 2);
@@ -76,8 +76,8 @@ for k = 1:size(Xkl, 1)
         [evc, eva] = eig(Rx_wh(:, :, k, l));
         [eva_sorted, index] = sort(diag(eva),'descend');
         evc_sorted = evc(:, index);
-        atf = Rn_invsqrt(:, :, k, l) \ evc_sorted(:, 1); % De-whiten
-        akl(:, k, l) = atf / atf(1); % Normalize
+        akl = Rn_invsqrt(:, :, k, l) \ evc_sorted(:, 1); % De-whiten
+
     end
 end
 fprintf("======Done calculating ATF======\n");
@@ -87,21 +87,18 @@ Bkl_DnS = DnS_beamformer(akl);
 Bkl_MVDR = MVDR_beamformer(akl, Rn_invsqrt);
 
 %% Apply to Signals
-% SSkl = zeros(size(Xkl, 1), size(Xkl, 2));
-% skl = zeros(1, 4);
-% for k = 1:size(Xkl, 1)
-%     for l = 1:size(Xkl, 2)
-%         for o=1:4
-%         skl(1,o)=Xkl(k,l,o);
-%         end
-%         SSkl(k,l)=skl*Bkl(:,k,l);
-%     end
-% end
-% 
-% % estimated
-% fs_signal=16000;
-% x=Skl(:,:,1);
-% y=SSkl;
-% 
-% % x=x(1:DD);
-% d = stoi(x, y, fs_signal);
+SSkl = zeros(size(Xkl, 1), size(Xkl, 2));
+skl = zeros(4, 1);
+for k = 1:size(Xkl, 1)
+    for l = 1:size(Xkl, 2)
+        for o=1:4
+        skl(o,1)=Xkl(k,l,o);
+        end
+        SSkl(k,l)=Bkl_DnS(:,k,l)'*skl;
+    end
+end
+
+fprintf("======Done calculating SS======\n");
+y = ISTFT1(S,SSkl,Fs1);
+fprintf("======Done calculating y======\n");
+d = stoi(S(:,4), y, Fs1);
