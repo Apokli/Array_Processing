@@ -1,21 +1,20 @@
 % Hanyuan Ban (5519829) and Junzhe Yin (5504325) Array Processing Codes
-% 
-% Part 1: ESTIMATION OF DIRECTIONS AND FREQUENCIES
-% Signal Model:
-%     model parameters
+
+% Project 1: Array parameter estimation
+
+%% Part 1: Estimation of directions and frequencies
+%% Signal Model:
+% model parameters
     M = 5;               % the number of antennas
     N = 20;              % the number of samples
     Delta = 0.5;         % antenna spacing per wavelength, commonly 0.5
     theta = [-20, 30].'; % directions of sources in degrees (-90, 90)
     f = [0.1, 0.3].';    % normalized frequency of sources [0, 1)
-    SNR = 20;     
-    
-%     signal to noise ratio per source
-%     
-%     apply the signal model
+    SNR = 20;            % signal to noise ratio per source    
+% apply the signal model
     [X, A, S] = gendata(M, N, Delta, theta, f, SNR);
     
-%     singular value decompostion
+% singular value decompostion
     sv = svd(X);
     figure(1);
     plot(1:length(sv), sv, '-*')
@@ -61,19 +60,15 @@
 
 
 %% Estimation of Directions
-    esprit_angle = esprit(X, size(theta, 1));  % esprit estimating angles
-
-
+    esprit_angle = esprit(X, size(theta, 1));
+    
 %% Estimation of Frequencies
-    esprit_freq = espritfreq(X, size(f, 1));  % esprit estimating angles
+    esprit_freq = espritfreq(X, size(f, 1));  
 
-
-
-%  Joint estimation of directions and frequencies
-     d=2;
-     m=5;
-     [j_theta, j_freq] = joint(X, d, m);
-
+%%  Joint estimation of directions and frequencies
+    d=2;
+    m=5;
+    [j_theta, j_freq] = joint(X, d, m);
 
 %% Comparison
     M = 3;               % the number of antennas
@@ -109,7 +104,6 @@
     xlabel("SNR")
     title("standard deviations at different SNRs")
     
-    
 %% ---- frequency estimation
     freqs = zeros(6, 1000, 2);
     for i = 1:length(SNR)
@@ -137,8 +131,8 @@
     
 %% ---- joint estimation
     freqs = zeros(6, 1000, 2);
-     d=2;
-     m=5;
+    d=2;
+    m=5;
     for i = 1:length(SNR)
         for j = 1:1000
             [X(:, :, i), A, S] = gendata(M, N, Delta, theta, f, SNR(i));
@@ -182,7 +176,6 @@
     xlabel("SNR")
     title("standard deviations at different SNRs")
 
-    
 % -- zero-forcing beamformer
 % ---- angle
     [X, A, S] = gendata(M, N, Delta, theta, f);
@@ -213,32 +206,33 @@
 
     y1=zeros(length(theta),1);
     y2=zeros(length(theta),1);
-   for i=1:size(theta) - 1
-    [X, A(:,:,i), S] = gendata(M, N, Delta, theta(i:i+1,:), f);
-    y1(i)=abs(det(Wha*A(:,:,i)));
-    y2(i)=abs(det(Whf*A(:,:,i)));
-   end
-   figure(6);
-   plot(theta,y1);
-   figure(7);
-   plot(theta,y2);
-% %% CHANNEL EQUALIZATION
-% clear 
-% N = 500;
-% P = 4;
-% sigma = 0;
-% 
-% sr = randi([0,3], N, 1);
-% s = exp(1i*(pi/4 + pi*sr/2));
-% x = gendata_conv(s,P,N,sigma);
-% 
-% X_noise = zeros(2*P,N-1);
-% for i=1:N-1
-%     A = 1 + i * P - P;
-%     B = i * P + P;
-%     X_noise(:, i) = x(A: B, 1);
-% end
-% % rank=rank(X_noise);
+    for i=1:size(theta) - 1
+        [X, A(:,:,i), S] = gendata(M, N, Delta, theta(i:i+1,:), f);
+        y1(i)=abs(det(Wha*A(:,:,i)));
+        y2(i)=abs(det(Whf*A(:,:,i)));
+    end
+    figure(6);
+    plot(theta,y1);
+    figure(7);
+    plot(theta,y2);
+    
+%% CHANNEL EQUALIZATION
+clear 
+N = 500;
+P = 4;
+sigma = 0;
+
+sr = randi([0,3], N, 1);
+s = exp(1i*(pi/4 + pi*sr/2));
+x = gendata_conv(s,P,N,sigma);
+
+X_noise = zeros(2*P,N-1);
+for i=1:N-1
+    A = 1 + i * P - P;
+    B = i * P + P;
+    X_noise(:, i) = x(A: B, 1);
+end
+rank_x = rank(X_noise);
 
 
 
